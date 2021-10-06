@@ -1,0 +1,2 @@
+v 3
+p elabel Stata module to extend the label commands
