@@ -1,9 +1,9 @@
-*! version 4.2.2 09jul2021 daniel klein
+*! version 4.3.0 07oct2021 daniel klein
 // -------------------------------------- elabel.mata
 version 11.2
 
 // -------------------------------------- elabel version
-local elabel_version 4.2.2
+local elabel_version 4.3.0
 local stata_version  `c(stata_version)'
 local date_time      "`c(current_date)' `c(current_time)'"
 
@@ -2812,7 +2812,8 @@ void Elabel::cmd_values()
     varlist = u_st_numvarlist(varlist)
     lbllist = cmd_values_lblnames(lbllist)
     
-    u_err_fewmany((i=cols(lbllist))-cols(varlist))
+    if (cols(lbllist) == 1) lbllist = J(1, (i=cols(varlist)), lbllist)
+    else u_err_fewmany((i=cols(lbllist))-cols(varlist))
     
     breakoff()
     if ( O.fixfmt() ) {
@@ -4895,6 +4896,8 @@ end
 exit
 
 /* ---------------------------------------
+4.3.0 07oct2021 -elabel values- extended syntax allows many-to-one mappings
+                updated help file
 4.2.2 09jul2021 polished output for -elabel duplicates report-
 4.2.1 16may2021 -elabel duplicates- w/o arguments defaults to -report-
                 new error message for attempt to label . (sysmiss)
