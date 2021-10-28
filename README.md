@@ -1,5 +1,5 @@
 # elabel
-Stata module to load a subset of Stata dataset
+Stata module to to extend the label commands
 
 To install `elabel` from within Stata, type
 
