@@ -18,6 +18,7 @@ d
 f elabel.ado
 f elabel.mata
 f elabel.sthlp
+f elabel_cmd_adjust.ado
 f elabel_cmd_compare.ado
 f elabel_cmd_load.ado
 f elabel_cmd_modify.ado
@@ -25,6 +26,7 @@ f elabel_cmd_recode.ado
 f elabel_cmd_remove.ado
 f elabel_cmd_rename.ado
 f elabel_cmd_uselabel.ado
+f elabel_adjust.sthlp
 f elabel_compare.sthlp
 f elabel_confirm.sthlp
 f elabel_copy.sthlp
