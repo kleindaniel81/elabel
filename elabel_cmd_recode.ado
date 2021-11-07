@@ -1,4 +1,4 @@
-*! version 1.6.1 15oct2020 daniel klein
+*! version 1.7.0 20oct2021 daniel klein
 program elabel_cmd_recode , rclass
     version 11.2
     
@@ -9,8 +9,8 @@ program elabel_cmd_recode , rclass
         PREfix(name)                                            ///
         SEParator(passthru)                                     ///
         COPYrest                                                ///
+        RECODEVARlist                                           ///
         VARlist                                                 ///
-        RECODEVARLIST                           /// not documented;
         Dryrun                                                  ///
     ] : `0'
     
@@ -46,47 +46,64 @@ program elabel_cmd_recode , rclass
         }
         elabel confirm new lblname `define'
     }
-    else assert 0
+    else assert 0 // NotReached
     
-    gettoken rule : mappings , match(lpar)
-    if ("`lpar'" == "(") {
-        gettoken ignore equals : rule   , parse("=") quotes
-        gettoken equals        : equals , parse("=") quotes
-        if (`"`equals'"' != "=") local lpar // void 
+    assert_rules `mappings'
+    
+    preserve
+    
+    recode_value_labels (`lblnamelist') (`mappings') (`if`f'') ///
+        , define(`define') `separator' `copyrest' `dryrun'
+    
+    elabel varvaluelabel `varvaluelabel'
+    
+    if ( ("`varlist'"=="varlist") | ("`recodevarlist'"=="recodevarlist") ) {
+        elabel _u_usedby rvarlist : `define'
+        if ("`recodevarlist'" == "recodevarlist") ///
+            recode_varlist `rvarlist' `rules' , define(`define') `dryrun'
     }
-    if ("`lpar'" != "(") {
-        display as err "invalid recoding rule `rule'"
-        exit 198
-    }
     
-    tempname notlbl tmplbl
+    if ( mi("`dryrun'") ) local not not 
+    restore , `not'
     
-    if ("`copyrest'" != "") {
-        if (`"`if`f''"' != "") {
-            gettoken iffword iffnot : if`f'
+    return local varlist : copy local rvarlist
+    return local rules : copy local rules
+end
+
+program recode_value_labels
+    syntax anything , DEFINE(namelist) ///
+    [ SEParator(passthru) COPYREST DRYRUN ]
+    
+    gettoken lblnamelist anything : anything , match(lpar)
+    gettoken mappings    anything : anything , match(lpar)
+    gettoken iff         anything : anything , match(lpar)
+    
+    if ("`copyrest'" == "copyrest") {
+        if (`"`iff'"' != "") {
+            gettoken iffword iffnot : iff
             local iffnot iff !(`iffnot')
         }
         else local copyrest // void
     }
     
-    preserve
+    tempname notlbl tmplbl
     
     local c 0
     foreach lbl of local lblnamelist {
         local newlbl : word `++c' of `define'
-        if ("`dryrun'" != "") {
+        if ("`dryrun'" == "dryrun") {
             display // _newline
             label list `lbl'
         }
-        if ("`copyrest'" != "") {
+        if ("`copyrest'" == "copyrest") {
             elabel copy `lbl' `notlbl' `iffnot' , replace
             quietly elabel list `notlbl'
             local notvalues  `r(values)'
         }
-        elabel copy   `lbl'    `newlbl' `if`f'' , replace
-        elabel copy   `newlbl' `tmplbl'         , replace
-        elabel define `newlbl' `mappings'       , modify `separator' noreturn
-        elabel define `tmplbl' `mappings'       , replace
+        elabel copy   `lbl'    `newlbl'  `iff' , replace
+        elabel copy   `newlbl' `tmplbl'        , replace
+        elabel define `newlbl' `mappings'      , modify `separator' noreturn
+        elabel define `tmplbl' `mappings'      , replace
         local rules `r(rules)'
         quietly elabel list `newlbl'
         local newvalues `r(values)'
@@ -96,32 +113,75 @@ program elabel_cmd_recode , rclass
         foreach val of local tmpvalues {
             elabel copy `tmplbl' `newlbl' iff (# == `val') , modify
         }
-        if ("`copyrest'" != "") {
+        if ("`copyrest'" == "copyrest") {
             local notvalues : list notvalues - newvalues
             foreach val of local notvalues {
                 elabel copy `notlbl' `newlbl' iff (# == `val') , modify
             }
         }
-        if ("`dryrun'" != "") label list `newlbl'
+        if ("`dryrun'" == "dryrun") label list `newlbl'
     }
     
-    elabel varvaluelabel `varvaluelabel'
+    c_local rules : copy local rules
+end
+
+program recode_varlist
+    syntax anything , DEFINE(namelist) [ DRYRUN ]
     
-    if ( ("`varlist'"=="varlist") | ("`recodevarlist'"=="recodevarlist") ) {
-        elabel _u_usedby rvarlist : `define'
-        if ( ("`recodevarlist'"=="recodevarlist") & ///
-             ("`rvarlist'"!="") & mi("`dryrun'") ) recode `rvarlist' `rules'
+    gettoken rvarlist : anything , parse("(")
+    if ("`rvarlist'" == "(") exit 0
+    
+    local current_language : char _dta[_lang_c]
+    local other_languages  : char _dta[_lang_list]
+    local other_languages  : list other_languages - current_language
+    
+    if ("`other_languages'" != "") {
+        foreach var of local rvarlist {
+            local lbl : value label `var'
+            local OK : list lbl in define
+            if (`OK') {
+                foreach lang of local other_languages {
+                    local lbl : char `var'[_lang_l_`lang']
+                    local OK : list lbl in define
+                    if (!`OK') {
+                        local current_language `lang'
+                        break
+                    }
+                }
+            }
+            if (!`OK') {
+                display as err "variable `var' has value label " ///
+                "`lbl' attached in label language `current_language'"
+                exit 498
+            }
+        }
     }
     
-    if ( mi("`dryrun'") ) local not not 
-    restore , `not'
+    if ("`dryrun'" == "dryrun") local quietly quietly
     
-    return local varlist : copy local rvarlist
-    return local rules : copy local rules
+    `quietly' recode `anything'
+end
+
+program assert_rules
+    gettoken rule : 0 , match(lpar)
+    if ("`lpar'" == "(") {
+        gettoken ignore equals : rule   , parse("=") quotes
+        gettoken equals        : equals , parse("=") quotes
+        if (`"`equals'"' != "=") local lpar // void 
+    }
+    if ("`lpar'" != "(") {
+        display as err "invalid recoding rule `rule'"
+        exit 198
+    }
 end
 exit
 
 /* ---------------------------------------
+1.7.0 20oct2021 option -recodevarlist- now checks for inconsistencies
+                option -recodevarlist- is now documented
+                option -dryrun- no longer prevents option -recodevarlist-
+                code polish: organized in sub-routines
+                updated help file
 1.6.1 15oct2020 bug fix: -varlist- no longer recodes variables
 1.6.0 01sep2020 new option -recodevarlist-; not documented
                 added reminder in help file

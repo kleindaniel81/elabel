@@ -80,7 +80,16 @@ that are found in {it:b}. The result is equivalent to Stata's
 
 {pstd}
 {cmd:_aandb()} returns a row vector indicating the elements of {it:a} 
-that are found in {it:b}.
+that are found in {it:b}. 
+
+{phang2}
+The function has an optional third argument, {it:uniq}, that specifies 
+how repeated values in {it:a} are matched. If {it:uniq}!=0 (the default), 
+elements in {it:b} are treated as unique, meaning that repeated elements 
+in {it:a} are matched at most once. If {it:uniq}=0, repeated elements in 
+{it:a} may be matched by the same element in {it:b}. For example, if 
+{cmd:a = (42, 73, 42, 73)} and {cmd:b = 42}, {cmd:_aandb(a, b)} returns 
+{cmd:(1, 0, 0, 0)} while {cmd:_aandb(a, b, 0)} returns {cmd:(1, 0, 1, 0)}. 
 
 {pstd}
 {cmd:adups()} returns the duplicate elements of {it:a}, omitting the first 
@@ -116,6 +125,15 @@ contain {it:a}, the function returns 0.
 {pstd}
 {cmd:_aposb()} returns a row vector indicating the positions in {it:b} 
 where {it:a} occurs.
+
+{phang2}
+The function has an optional third argument, {it:disjoint}, that specifies 
+how repeated (or overlapping) occurences of {it:a} in {it:b} are matched. If 
+{it:disjoint}!=0 (the default), repeated occurences of {it:a} are mateched 
+at most once. If {it:disjoint}=0, repeated occurences of {it:a} in {it:b} 
+are matched repeatedly. For example, if {cmd:a = (1, 0, 1)} and 
+{cmd:b = (1, 0, 1, 0, 1)}, {cmd:_aposb(a, b)} returns {cmd:(1, 0, 0, 0, 0)} 
+while {cmd:_aposb(a, b, 0)} returns {cmd:(1, 0, 1, 0, 0)}.
 
 {pstd}
 {cmd:auniq()} returns the distinct elements of {it:a}; elements in the 
