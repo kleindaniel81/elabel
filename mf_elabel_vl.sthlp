@@ -238,7 +238,7 @@ functions respect {it:touse}.
 
 {pstd}
 {cmd:elabel_vllistmappings()} list only the integer-to-text mappings in 
-{it:vl}, exclding the {it:name}. This function respects {it:touse}.
+{it:vl}, excluding the {it:name}. This function respects {it:touse}.
 
 {pstd}
 {cmd:elabel_vlassert_add()} exits with the respective Stata error message 

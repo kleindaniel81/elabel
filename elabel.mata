@@ -1,9 +1,9 @@
-*! version 4.4.0 07nov2021 daniel klein
+*! version 4.4.1 04dec2021 daniel klein
 // -------------------------------------- elabel.mata
 version 11.2
 
 // -------------------------------------- elabel version
-local elabel_version 4.4.0
+local elabel_version 4.4.1
 local stata_version  `c(stata_version)'
 local date_time      "`c(current_date)' `c(current_time)'"
 
@@ -4854,6 +4854,7 @@ mata :
     }
     
     if (all((a, b) :>= .)) {
+        if (!(d=trunc(d))) return(3300)
         mvc = (.\ strtoreal("." :+ tokens(c("alpha")))')
         a     = select((1::rows(mvc)), (mvc :== a))
         b     = select((1::rows(mvc)), (mvc :== b))
@@ -4906,6 +4907,7 @@ end
 exit
 
 /* ---------------------------------------
+4.4.1 04dec2021 bug fix _range_mv()
 4.4.0 07nov2021 new elabel_cmd_adjust
                 update elabel_cmd_recode
                 revised help files
