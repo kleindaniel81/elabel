@@ -1,9 +1,9 @@
-*! version 4.4.1 04dec2021 daniel klein
+*! version 4.4.2 28dec2021 daniel klein
 // -------------------------------------- elabel.mata
 version 11.2
 
 // -------------------------------------- elabel version
-local elabel_version 4.4.1
+local elabel_version 4.4.2
 local stata_version  `c(stata_version)'
 local date_time      "`c(current_date)' `c(current_time)'"
 
@@ -2869,7 +2869,7 @@ void Elabel::cmd_dir()
     }
     
     ptrn = ( (tokenpeek(t_zero)!=",") ? tokenget(t_zero) : "" )
-    u_st_syntax(tokenrest(t_zero), "[ , noMEMory CURrent ]")
+    u_st_syntax(tokenrest(t_zero), "[ , noMEMory CURrent Alpha ]")
     O.st_get()
     
     pragma unset undef
@@ -2879,7 +2879,17 @@ void Elabel::cmd_dir()
     elabel_dir( undef, orphans, used, !O.current() )
     
     cmd_dir_match(ptrn, undef, orphans, used)
-    cmd_dir_print( (rnames=(used\ orphans)), undef )
+    
+    rnames = (used\ orphans)
+    
+    if (st_local("alpha") == "alpha") {
+        _sort(undef,   1)
+        _sort(orphans, 1)
+        _sort(used,    1)
+        _sort(rnames,  1)
+    }
+    
+    cmd_dir_print( rnames, undef )
     
     st_rclear()
     if (O.nomem()) {
@@ -4907,6 +4917,7 @@ end
 exit
 
 /* ---------------------------------------
+4.4.2 28dec2021 new option -alpha- for -elabel dir-
 4.4.1 04dec2021 bug fix _range_mv()
 4.4.0 07nov2021 new elabel_cmd_adjust
                 update elabel_cmd_recode

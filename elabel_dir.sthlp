@@ -43,6 +43,9 @@ datasets (see {help label language}). Additional results are returned in
 {opt cur:rent} is for use with, and implies, {opt nomemory} and lists not 
 yet defined value labels in the current label language only. 
 
+{phang}
+{opt a:lpha} sorts value label names in alphanumeric order. 
+
 
 {title:Examples}
 
